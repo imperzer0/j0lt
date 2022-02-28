@@ -10,7 +10,7 @@
  > * https://www.rfc-editor.org/rfc/rfc768.html       (UDP)
  > * https://www.rfc-editor.org/rfc/rfc760            (IP)
  ------------------------------------------------------------
- * Usage: sudo ./j0lt -t ;lttarget;rt -p ;ltport;rt
+ * Usage: sudo ./j0lt -t &lt;target&rt; -p &lt;port&rt;
  * (the-scientist㉿rs)-$ gcc j0lt.c -o j0lt
  * (the-scientist㉿rs)-$ sudo ./j0lt -t 127.0.0.1 -p 80
  * ------------------------------------------------------------
