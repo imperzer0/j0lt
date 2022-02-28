@@ -9,3 +9,5 @@ oldtestfiles
 .editorconfig
 /cmake-build-*/
 jolt
+jolt_sber_dns.sh
+jolt_ip_list.txt
