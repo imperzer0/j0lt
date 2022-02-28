@@ -415,7 +415,11 @@ int main(int argc, char** argv)
 		for (LINKEDLIST* list = ip_addresses_list; list != NULL; list = list->next)
 		{
 			if ((ret = proceed(spoofport, magnitude, spoofip, debugmode, hexmode, filereadmode, pathptr)))
+			{
+				free(list->data);
 				return ret;
+			}
+			free(list->data);
 		}
 		return ret;
 	}
