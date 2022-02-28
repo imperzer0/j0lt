@@ -340,7 +340,7 @@ int main(int argc, char** argv)
 	printf("%s", g_menu);
 	
 	filereadmode = debugmode = hexmode = false;
-	magnitude = spoofport = spoofip = 0;
+	spoofport = spoofip = 0;
 	opt = getopt(argc, argv, g_args);
 	do
 	{
@@ -414,6 +414,11 @@ int main(int argc, char** argv)
 		int ret;
 		for (LINKEDLIST* list = ip_addresses_list; list != NULL; list = list->next)
 		{
+			printf("Processing address \"%s\"", (char*)list->data);
+			spoofip = inet_addr(list->data);
+			if (spoofip == 0)
+				err_exit("* invalid spoof ip");
+			
 			if ((ret = proceed(spoofport, magnitude, spoofip, debugmode, hexmode, filereadmode, pathptr)))
 			{
 				free(list->data);
