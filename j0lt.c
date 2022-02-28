@@ -334,7 +334,7 @@ int main(int argc, char** argv)
 	int opt, pathsz;
 	bool debugmode, hexmode, filereadmode, file_ip_input_mode;
 	uint32_t spoofip;
-	uint16_t spoofport, magnitude;
+	uint16_t spoofport, magnitude = UINT16_MAX;
 	LINKEDLIST* ip_addresses_list = NULL;
 	
 	printf("%s", g_menu);
@@ -382,8 +382,8 @@ int main(int argc, char** argv)
 			case 'm':
 				errno = 0;
 				magnitude = (uint16_t)strtol(optarg, &endptr, 0);
-				if (errno != 0 || endptr == optarg || *endptr != '\0')
-					err_exit("* magnituted invalid");
+//				if (errno != 0 || endptr == optarg || *endptr != '\0')
+//					err_exit("* magnituted invalid");
 				break;
 			case 'r':
 				
