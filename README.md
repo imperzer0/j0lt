@@ -11,8 +11,8 @@
  > * https://www.rfc-editor.org/rfc/rfc760            (IP)
  ------------------------------------------------------------
  * Usage: sudo ./j0lt -t &lt;target&gt; -p &lt;port&gt;
- * (the-scientist㉿rs)-$ gcc j0lt.c -o j0lt
- * (the-scientist㉿rs)-$ sudo ./j0lt -t 127.0.0.1 -p 80
+ * $ gcc j0lt.c -o j0lt
+ * $ sudo ./j0lt -t 127.0.0.1 -p 80
  * ------------------------------------------------------------
  * Options:
  * [-x] will print a hexdump of the packet headers
