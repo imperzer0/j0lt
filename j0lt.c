@@ -185,19 +185,35 @@ char* g_wget[] = {
 };
 
 const char* g_menu = {
-		"  PRIVATE CONFIDENTIAL SOURCE MATERIALS DO NOT DISTRIBUTE \n"
-		" =========================================================\n"
-		" Usage: sudo ./j0lt -t/-T -p -m [OPTION]...               \n"
-		" -t <target>                      : target IPv4 (spoof)   \n"
-		" -T <filename>                    : target IPv4 list file \n"
-		" -p <port>                        : target port           \n"
-		" -m <magnitude>                   : magnitude of attack   \n"
-		" -x [hexdump]                     : print hexdump         \n"
-		" -d [debug]                       : offline debug mode    \n"
-		" -r [resolv]<path>                : will not download list\n"
-		"                                  : provide absolute path \n"
-		" =========================================================\n"
-		" sc1entist spl0its-r-us     (modified by imper)           \n"
+		COLOR_RESET COLOR_BLUE_BG COLOR_WHITE
+		"                                                            "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  ========================================================= "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  Usage: sudo ./j0lt -t/-T -p -m [OPTION]...                "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  -t <target>                      : target IPv4 (spoof)    "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  -T <filename>                    : target IPv4 list file  "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  -p <port>                        : target port            "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  -m <magnitude>                   : magnitude of attack    "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  -x [hexdump]                     : print hexdump          "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  -d [debug]                       : offline debug mode     "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  -r [resolv]<path>                : will not download list "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"                                   : provide absolute path  "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  ========================================================= "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"  sc1entist spl0its-r-us     (modified by imper)            "
+		COLOR_DEFAULT_BG COLOR_RESET "\n" COLOR_BLUE_BG COLOR_WHITE
+		"                                                            "
+		COLOR_DEFAULT_BG COLOR_RESET "\n"
 };
 
 inline static bool read_file_into_mem(const char* filename, void** data_out, size_t* size_out);
@@ -222,10 +238,11 @@ inline static uint16_t j0lt_checksum(const uint16_t* addr, size_t count);
 
 inline static void print_hex(void* data, size_t len);
 
-#define EXIT_ERR_MESSAGE "Usage: " COLOR_MAGENTA "\"%s\""" -t " COLOR_BLUE "target" COLOR_RESET " / -T " COLOR_BLUE "file_with_targets" COLOR_RESET\
-                         " -p " COLOR_BLUE "port" COLOR_RESET " -m " COLOR_BLUE "magnitude" COLOR_RESET " [OPTIONS]...\n"
+#define EXIT_ERR_MESSAGE COLOR_RESET "Usage: " COLOR_MAGENTA "\"%s\"" COLOR_RESET " -t " COLOR_BLUE "target" COLOR_RESET " / -T " COLOR_BLUE "file_with_targets"\
+                         COLOR_RESET " -p " COLOR_BLUE "port" COLOR_RESET " -m " COLOR_BLUE "magnitude" COLOR_RESET " [OPTIONS]...\n"
 
-inline static int proceed(uint16_t spoofport, uint16_t magnitude, uint32_t spoofip, bool debugmode, bool hexmode, bool filereadmode, const char* pathptr)
+inline static int proceed(
+		uint16_t spoofport, uint16_t magnitude, uint32_t spoofip, bool debugmode, bool hexmode, bool filereadmode, const char* pathptr)
 {
 	posix_spawnattr_t attr;
 	posix_spawnattr_t* attrp;
@@ -330,11 +347,11 @@ inline static int proceed(uint16_t spoofport, uint16_t magnitude, uint32_t spoof
 	return 0;
 }
 
-typedef struct LINKEDLIST
+typedef struct
 {
 	void* data;
 	struct LINKEDLIST* next;
-} LINKEDLIST;
+} LINKEDLIST, * PLINKEDLIST;
 
 int main(int argc, char** argv)
 {
@@ -347,9 +364,9 @@ int main(int argc, char** argv)
 	bool debugmode, hexmode, filereadmode, file_ip_input_mode;
 	uint32_t spoofip;
 	uint16_t spoofport, magnitude = UINT16_MAX;
-	LINKEDLIST* ip_addresses_list = NULL;
+	PLINKEDLIST ip_addresses_list = NULL;
 	
-	printf(COLOR_BLUE_BG COLOR_BLACK "%s" COLOR_RESET, g_menu);
+	printf("%s", g_menu);
 	
 	filereadmode = debugmode = hexmode = false;
 	spoofport = spoofip = 0;
@@ -369,7 +386,7 @@ int main(int argc, char** argv)
 				while (*optarg == ' ')
 					optarg++;
 				FILE* ip_list_file = fopen(optarg, "rb");
-				LINKEDLIST** list_iter = &ip_addresses_list;
+				PLINKEDLIST* list_iter = &ip_addresses_list;
 				file_ip_input_mode = true;
 				while (true)
 				{
@@ -425,7 +442,7 @@ int main(int argc, char** argv)
 	if (file_ip_input_mode)
 	{
 		int ret;
-		for (LINKEDLIST* list = ip_addresses_list; list != NULL; list = list->next)
+		for (PLINKEDLIST list = ip_addresses_list; list != NULL; list = list->next)
 		{
 			printf(COLOR_GREEN "Processing address \"%s\"..." COLOR_RESET, (char*)list->data);
 			spoofip = inet_addr(list->data);
