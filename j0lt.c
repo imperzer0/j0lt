@@ -366,6 +366,8 @@ int main(int argc, char** argv)
 	uint16_t spoofport, magnitude = UINT16_MAX;
 	PLINKEDLIST ip_addresses_list = NULL;
 	
+	openlog(appname, LOG_PID | LOG_CONS, LOG_USER);
+	
 	printf("%s", g_menu);
 	
 	filereadmode = debugmode = hexmode = false;
