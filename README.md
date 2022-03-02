@@ -10,14 +10,15 @@
  > * https://www.rfc-editor.org/rfc/rfc768.html       (UDP)
  > * https://www.rfc-editor.org/rfc/rfc760            (IP)
  ------------------------------------------------------------
- * Usage: sudo ./j0lt -t <target> -p <port> -m <magnitude>
- * (the-scientist㉿rs)-$ gcc j0lt.c -o j0lt
- * (the-scientist㉿rs)-$ sudo ./j0lt -t 127.0.0.1 -p 80 -m 1337
+ * Usage: sudo ./j0lt -t &lt;target&gt; / -T &lt;target_list_file&gt; -p &lt;port&gt;
+ * $ gcc j0lt.c -o j0lt
+ * $ sudo ./j0lt -t 127.0.0.1 -p 80
  * ------------------------------------------------------------
  * Options:
  * [-x] will print a hexdump of the packet headers
  * [-d] puts j0lt into debug mode, no packets are sent
  * [-r list] will not fetch a resolv list, if one is provided.
+ * [-m magnitude] request count
  ------------------------------------------------------------
  > What is DNS a amplification attack:
  > * A type of DDoS attack in which attackers use publicly
